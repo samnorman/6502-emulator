@@ -9,3 +9,5 @@ Still lots to do...
 3) Implement instructions.
 4) Timing/CPU cycles. 
 5) Maybe, don't use a "nasty" switch statement for fetch/excute cycle - maybe use C lookup table.
+6) Interrupts
+7) Maybe look at building a console emulator.
