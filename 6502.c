@@ -26,6 +26,7 @@ int main()
 {	
 	memory = (unsigned char *)malloc(65536);
 
+	// Dummy test memory.
 	memory[0x1000] = 0xA9;
 	memory[0x1001] = 0xFF;
 	memory[0x1002] = 0xA9;
@@ -48,14 +49,17 @@ int main()
 	keypad(stdscr, TRUE);
 
 	while(1){
-		ch = getch();
-		if(ch == KEY_LEFT) {
-			break;
-		}
 
-		if(ch == KEY_RIGHT) {
-			pages++;
-			outputmemory(pages);
+		// Nucures - wait for user input. 
+		ch = getch();
+
+		switch (ch) {
+			case KEY_RIGHT: /* Exit */
+				goto EndWhile;
+				break;
+			case KEY_LEFT: /* Increment memory pages  */
+				pages++;
+				break;
 		}
 
 		switch (memory[program_counter++])  {
@@ -64,7 +68,6 @@ int main()
 		    program_counter++;   
 	        sign_flag = accumulator & 0x80;
 	        zero_flag = !(accumulator);
-	        printw("LDA ");
 	 	break;
 
 		case 0x4c: /* JMP absolute */
@@ -84,6 +87,8 @@ int main()
 		updatescreen();
 	
 	}
+
+	EndWhile:
 
 	endwin();
 	return 0;
