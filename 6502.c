@@ -24,6 +24,8 @@ void updatescreen();
 
 unsigned char pages = 0;
 
+unsigned char wrapnumber;
+
 int main()
 {	
 	memory = (unsigned char *)malloc(65536);
@@ -31,18 +33,13 @@ int main()
 	for(int i=0; i<65536; i++)
 		memory[i] = 0xFF;
 	
-
 	// Dummy test memory.
-	memory[0x1000] = 0xA9;
-	memory[0x1001] = 0xFF;
-	memory[0x1002] = 0xA9;
-	memory[0x1003] = 0x55;
-	
-	memory[0x1004] = 0xAD;
-	memory[0x1005] = 0x07;
-	memory[0x1006] = 0x10;
+	memory[0x1000] = 0xA2;
+	memory[0x1001] = 0x80;
+	memory[0x1002] = 0xB5;
+	memory[0x1003] = 0xFF;
 
-	memory[0x1007] = 0x44;
+	memory[0x007F] = 0xAA;
 
 	program_counter = 0x1000;
 
@@ -74,7 +71,7 @@ int main()
 		if(ch == 'z') {
 
 			switch (memory[program_counter++])  {
-				case 0xA9:  
+				case 0xA9:  /* LDA Immediate */
 				    accumulator = memory[program_counter];
 				    program_counter++;   
 			        sign_flag = accumulator & 0x80;
@@ -99,6 +96,26 @@ int main()
 		    		sign_flag = accumulator & 0x80;
 		    		zero_flag = !(accumulator);
 	 			break;
+
+	 			case 0xA5: /* LDA zero page */
+	 				// Concatenate number for zero page addressing.
+		    		addr = (0x00 << 8) | memory[program_counter];     
+		    		accumulator = memory[addr];
+		    		program_counter ++; 
+		    		sign_flag = accumulator & 0x80;
+		    		zero_flag = !(accumulator);
+		    	break;
+
+		    	case 0xB5: { /* LDA Zero Page,X */
+		    		// Concatenate number for zero page addressing.
+		    		unsigned char xoffset = (memory[program_counter] + x_reg);
+		    		addr = (0x00 << 8) | xoffset;     
+		    		accumulator = memory[addr];
+		    		program_counter ++; 
+		    		sign_flag = accumulator & 0x80;
+		    		zero_flag = !(accumulator);
+	 				break;
+	 			}
 			}
 
 		}
@@ -121,15 +138,15 @@ void updatescreen()
 }
 
 void outputregisters(){
-	printw("A");
+	printw("A ");
 	printw("0x%02X", accumulator);
 	printw("\n");
 	printw("\n");
-	printw("X");
+	printw("X ");
 	printw("0x%02X", x_reg);
 	printw("\n");
 	printw("\n");
-	printw("Y");
+	printw("Y ");
 	printw("0x%02X", y_reg);
 	printw("\n");
 	printw("\n");
