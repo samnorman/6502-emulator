@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 // 6502 Registers, Flags, Memory.
 int zero_flag;
 int sign_flag;
@@ -23,7 +22,7 @@ void outputregisters();
 void outputmemory();
 void updatescreen();
 
-int pages = 0;
+unsigned char pages = 0;
 
 int main()
 {	
@@ -61,35 +60,48 @@ int main()
 		ch = getch();
 
 		switch (ch) {
-			case KEY_RIGHT: /* Exit */
+			case KEY_F(1): /* Exit */
 				goto EndWhile;
 				break;
-			case KEY_LEFT: /* Increment memory pages  */
+			case 'a': /* Increment memory pages  */
 				pages++;
+				break;
+			case 's': /* Increment memory pages  */
+				pages--;
 				break;
 		}
 
-		switch (memory[program_counter++])  {
-			case 0xA9:  
-			    accumulator = memory[program_counter];
-			    program_counter++;   
-		        sign_flag = accumulator & 0x80;
-		        zero_flag = !(accumulator);
-		 	break;
+		if(ch == 'z') {
 
-			case 0x4c: /* JMP absolute */
-	      		program_counter = (memory[program_counter+1] << 8) | memory[program_counter];     
-			break;
+			switch (memory[program_counter++])  {
+				case 0xA9:  
+				    accumulator = memory[program_counter];
+				    program_counter++;   
+			        sign_flag = accumulator & 0x80;
+			        zero_flag = !(accumulator);
+			 	break;
 
-	        case 0xAD: /* LDA absolute */
-	    		addr = (memory[program_counter+1] << 8) | memory[program_counter];     
-	    		accumulator = memory[addr];
-	    		program_counter += 2; 
-	    		sign_flag = accumulator & 0x80;
-	    		zero_flag = !(accumulator);
-	    		printf("Address %x\n", addr);
- 			break;
-	}
+			 	case 0xA2:  /* LDX Immediate */
+				    x_reg = memory[program_counter];
+				    program_counter++;   
+			        sign_flag = x_reg & 0x80;
+			        zero_flag = !(x_reg);
+			 	break;
+
+				case 0x4C: /* JMP absolute */
+		      		program_counter = (memory[program_counter+1] << 8) | memory[program_counter];     
+				break;
+
+		        case 0xAD: /* LDA absolute */
+		    		addr = (memory[program_counter+1] << 8) | memory[program_counter];     
+		    		accumulator = memory[addr];
+		    		program_counter += 2; 
+		    		sign_flag = accumulator & 0x80;
+		    		zero_flag = !(accumulator);
+	 			break;
+			}
+
+		}
 
 	updatescreen();
 	
@@ -109,8 +121,17 @@ void updatescreen()
 }
 
 void outputregisters(){
-	printw("Accumulator ");
-	printw("0x%x", accumulator);
+	printw("A");
+	printw("0x%02X", accumulator);
+	printw("\n");
+	printw("\n");
+	printw("X");
+	printw("0x%02X", x_reg);
+	printw("\n");
+	printw("\n");
+	printw("Y");
+	printw("0x%02X", y_reg);
+	printw("\n");
 	printw("\n");
 	printw("PC ");
 	printw("0x%x", program_counter);
@@ -136,7 +157,7 @@ void outputmemory()
 	mvprintw(15,20,"%s","0xE0");
 	mvprintw(16,20,"%s","0xF0");
 
-	mvprintw(18,20,"Page %x", pages);
+	mvprintw(18,20,"Page 0x%02X", pages);
 
 	// column spacer.
 	int ci = 25;
@@ -149,7 +170,7 @@ void outputmemory()
 
 	for(int i=0; i<16; i++) {
 		for(int j=0; j<16; j++) {
-			mvprintw(rj,ci,"0x%x", memory[memorylocation]);
+			mvprintw(rj,ci,"0x%02X", memory[memorylocation]);
 
 			// move column to the next space.
 			ci+=5;
