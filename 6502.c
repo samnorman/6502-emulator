@@ -34,14 +34,14 @@ int main()
 		memory[i] = 0xFF;
 	
 	// Dummy test memory.
-	memory[0x1000] = 0xA2;
-	memory[0x1001] = 0x04;
-	memory[0x1002] = 0xA1;
-	memory[0x1003] = 0x20;
-	memory[0x0024] = 0x74;
-	memory[0x0025] = 0x20;
+	memory[0x1000] = 0xA0;
+	memory[0x1001] = 0x10;
+	memory[0x1002] = 0xB1;
+	memory[0x1003] = 0x86;
+	memory[0x0086] = 0x28;
+	memory[0x0087] = 0x40;
 
-	memory[0x2074] = 0x99;
+	memory[0x4038] = 0x88;
 
 	program_counter = 0x1000;
 
@@ -79,6 +79,53 @@ int main()
 				    program_counter++;   
 			        sign_flag = x_reg & 0x80;
 			        zero_flag = !(x_reg);
+			 	break;
+
+			 	case 0xA6: /* LDX zero page */
+	 				// Concatenate number for zero page addressing.
+		    		addr = (0x00 << 8) | memory[program_counter];     
+		    		x_reg = memory[addr];
+		    		program_counter ++; 
+		    		sign_flag = x_reg & 0x80;
+		    		zero_flag = !(x_reg);
+		    	break;
+
+		    	case 0xB6: { /* LDX Zero Page,Y */
+		    		// Concatenate number for zero page addressing.
+		    		unsigned char yoffset = (memory[program_counter] + y_reg);
+		    		addr = (0x00 << 8) | yoffset;     
+		    		x_reg = memory[addr];
+		    		program_counter ++; 
+		    		sign_flag = x_reg & 0x80;
+		    		zero_flag = !(x_reg);
+	 			break;
+	 			}
+
+	 			case 0xAE: /* LDX absolute */
+		    		addr = (memory[program_counter+1] << 8) | memory[program_counter];     
+		    		x_reg = memory[addr];
+		    		program_counter += 2; 
+		    		sign_flag = x_reg & 0x80;
+		    		zero_flag = !(x_reg);
+	 			break;
+
+	 			case 0xBE: { /* LDX Absolute,Y  */
+
+	 				addr = (memory[program_counter+1] << 8) | memory[program_counter];     
+	 				addr += y_reg;
+		    		x_reg = memory[addr];
+		    		program_counter += 2; 
+		    		sign_flag = x_reg & 0x80;
+		    		zero_flag = !(x_reg);
+
+	 			break;
+	 			}
+
+			 	case 0xA0:  /* LDY Immediate */
+				    y_reg = memory[program_counter];
+				    program_counter++;   
+			        sign_flag = y_reg & 0x80;
+			        zero_flag = !(y_reg);
 			 	break;
 
 				case 0x4C: /* JMP absolute */
@@ -158,7 +205,22 @@ int main()
 		    		addr = (memory[addr+1] << 8) | memory[addr];
 
 		    		accumulator = memory[addr];
+		    		program_counter++; 
+		    		sign_flag = accumulator & 0x80;
+		    		zero_flag = !(accumulator);
 
+	 			break;
+	 			}
+
+	 			case 0xB1: { /* LDA (Indirect,X)  */
+
+	 				// Zero page address. 
+		    		addr = (0x00 << 8) | memory[program_counter];
+
+		    		// Get the address of the value we require.
+		    		addr = (memory[addr+1] << 8) | memory[addr];
+
+		    		accumulator = memory[addr + y_reg];
 		    		program_counter++; 
 		    		sign_flag = accumulator & 0x80;
 		    		zero_flag = !(accumulator);
