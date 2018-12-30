@@ -34,16 +34,16 @@ int main()
 		memory[i] = 0xFF;
 	
 	// Dummy test memory.
-	memory[0x00EE] = 0x04;
+	memory[0x0005] = 0x04;
 
-	memory[0x1000] = 0xE6;
-	memory[0x1001] = 0xEE;
+	memory[0x1000] = 0xA2;
+	memory[0x1001] = 0x04;
 
-	memory[0x1002] = 0xE6;
-	memory[0x1003] = 0xEE;
+	memory[0x1002] = 0xF6;
+	memory[0x1003] = 0x01;
 
-	memory[0x1004] = 0xE6;
-	memory[0x1005] = 0xEE;
+	memory[0x1004] = 0xF6;
+	memory[0x1005] = 0x01;
 
 	program_counter = 0x1000;
 
@@ -271,13 +271,25 @@ int main()
 	 			}
 
 	 			/* INC Instrution */
+
 	 			case 0xE6: { /* INC Zero Page  */
 	 				// Zero page address. 
 		    		addr = (0x00 << 8) | memory[program_counter];
 		    		memory[addr]++;
 		    		program_counter++; 
-		    		sign_flag = accumulator & 0x80;
-		    		zero_flag = !(accumulator);
+		    		sign_flag = memory[addr] & 0x80;
+		    		zero_flag = !(memory[addr]);
+	 			break;
+	 			}
+
+	 			case 0xF6: { /* INC Zero Page,X  */
+	 				// Concatenate number for zero page addressing.
+		    		unsigned char xoffset = (memory[program_counter] + x_reg);
+		    		addr = (0x00 << 8) | xoffset;     
+		    		memory[addr]++;
+		    		program_counter++; 
+		    		sign_flag = memory[addr] & 0x80;
+		    		zero_flag = !(memory[addr]);
 	 			break;
 	 			}
 
