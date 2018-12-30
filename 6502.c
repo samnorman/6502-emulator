@@ -34,16 +34,18 @@ int main()
 		memory[i] = 0xFF;
 	
 	// Dummy test memory.
-	memory[0x0005] = 0x04;
+	memory[0x2000] = 0xEE;
 
 	memory[0x1000] = 0xA2;
-	memory[0x1001] = 0x04;
+	memory[0x1001] = 0xEE;
 
-	memory[0x1002] = 0xF6;
-	memory[0x1003] = 0x01;
+	memory[0x1002] = 0xFE;
+	memory[0x1003] = 0x00;
+	memory[0x1004] = 0x20;
 
-	memory[0x1004] = 0xF6;
-	memory[0x1005] = 0x01;
+	memory[0x1005] = 0xFE;
+	memory[0x1006] = 0x00;
+	memory[0x1007] = 0x20;
 
 	program_counter = 0x1000;
 
@@ -288,6 +290,25 @@ int main()
 		    		addr = (0x00 << 8) | xoffset;     
 		    		memory[addr]++;
 		    		program_counter++; 
+		    		sign_flag = memory[addr] & 0x80;
+		    		zero_flag = !(memory[addr]);
+	 			break;
+	 			}
+
+	 			case 0xEE: { /* INC Absolute  */
+	 				addr = (memory[program_counter+1] << 8) | memory[program_counter];     
+		    		memory[addr]++;
+		    		program_counter += 2; 
+		    		sign_flag = memory[addr] & 0x80;
+		    		zero_flag = !(memory[addr]);
+	 			break;
+	 			}
+
+	 			case 0xFE: { /* INC Absolute X  */
+	 				addr = (memory[program_counter+1] << 8) | memory[program_counter];     
+	 				addr += x_reg;
+		    		memory[addr]++;
+		    		program_counter += 2; 
 		    		sign_flag = memory[addr] & 0x80;
 		    		zero_flag = !(memory[addr]);
 	 			break;
