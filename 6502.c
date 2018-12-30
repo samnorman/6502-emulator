@@ -35,11 +35,13 @@ int main()
 	
 	// Dummy test memory.
 	memory[0x1000] = 0xA2;
-	memory[0x1001] = 0x80;
-	memory[0x1002] = 0xB5;
-	memory[0x1003] = 0xFF;
+	memory[0x1001] = 0x04;
+	memory[0x1002] = 0xA1;
+	memory[0x1003] = 0x20;
+	memory[0x0024] = 0x74;
+	memory[0x0025] = 0x20;
 
-	memory[0x007F] = 0xAA;
+	memory[0x2074] = 0x99;
 
 	program_counter = 0x1000;
 
@@ -71,12 +73,6 @@ int main()
 		if(ch == 'z') {
 
 			switch (memory[program_counter++])  {
-				case 0xA9:  /* LDA Immediate */
-				    accumulator = memory[program_counter];
-				    program_counter++;   
-			        sign_flag = accumulator & 0x80;
-			        zero_flag = !(accumulator);
-			 	break;
 
 			 	case 0xA2:  /* LDX Immediate */
 				    x_reg = memory[program_counter];
@@ -88,6 +84,15 @@ int main()
 				case 0x4C: /* JMP absolute */
 		      		program_counter = (memory[program_counter+1] << 8) | memory[program_counter];     
 				break;
+
+				/* LDA Instrutions */
+
+				case 0xA9:  /* LDA Immediate */
+				    accumulator = memory[program_counter];
+				    program_counter++;   
+			        sign_flag = accumulator & 0x80;
+			        zero_flag = !(accumulator);
+			 	break;
 
 		        case 0xAD: /* LDA absolute */
 		    		addr = (memory[program_counter+1] << 8) | memory[program_counter];     
@@ -114,7 +119,51 @@ int main()
 		    		program_counter ++; 
 		    		sign_flag = accumulator & 0x80;
 		    		zero_flag = !(accumulator);
-	 				break;
+	 			break;
+	 			}
+
+	 			case 0xBD: { /* LDA Absolute,X  */
+
+	 				addr = (memory[program_counter+1] << 8) | memory[program_counter];     
+	 				addr += x_reg;
+		    		accumulator = memory[addr];
+		    		program_counter += 2; 
+		    		sign_flag = accumulator & 0x80;
+		    		zero_flag = !(accumulator);
+
+	 			break;
+	 			}
+
+	 			case 0xB9: { /* LDA Absolute,Y  */
+
+	 				addr = (memory[program_counter+1] << 8) | memory[program_counter];     
+	 				addr += y_reg;
+		    		accumulator = memory[addr];
+		    		program_counter += 2; 
+		    		sign_flag = accumulator & 0x80;
+		    		zero_flag = !(accumulator);
+
+	 			break;
+	 			}
+
+	 			case 0xA1: { /* LDA (Indirect,X)  */
+
+	 				// Add X to the value of A. 
+	 				unsigned char xoffset = (memory[program_counter] + x_reg);
+
+	 				// Get the address in 16bit. 
+		    		addr = (0x00 << 8) | xoffset;
+
+		    		// Get the address of the value we require.
+		    		addr = (memory[addr+1] << 8) | memory[addr];
+
+		    		accumulator = memory[addr];
+
+		    		program_counter++; 
+		    		sign_flag = accumulator & 0x80;
+		    		zero_flag = !(accumulator);
+
+	 			break;
 	 			}
 			}
 
